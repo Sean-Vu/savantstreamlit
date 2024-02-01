@@ -51,7 +51,7 @@ def constructHeatMapvalueMatrix():
   for key, value in list(signature_to_sample_sum.items())[:5]:
         print(f"{key}: {value}")
   heatMapDF = pd.DataFrame(signature_to_sample_sum)
-  sns.heatmap(heatMapDF, cmap='coolwarm', annot=True, fmt=".2f")
+  sns.heatmap(heatMapDF, cmap='coolwarm', annot=True, fmt=".2f", cbar = False)
   st.pyplot()
 
 

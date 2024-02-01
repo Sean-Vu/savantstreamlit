@@ -115,7 +115,7 @@ def main():
 
         
 
-    # Main App Contentss
+    # Main App Contents
     st.title("SaVanT (Signature Visualization Tool)")
     st.text("Visualize molecular signatures in the context of gene expression matrices")
     if st.button("Generate Heatmap"):
