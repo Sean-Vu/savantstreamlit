@@ -51,7 +51,9 @@ def constructHeatMapvalueMatrix():
   for key, value in list(signature_to_sample_sum.items())[:5]:
         print(f"{key}: {value}")
   heatMapDF = pd.DataFrame(signature_to_sample_sum)
-  sns.heatmap(heatMapDF, cmap='coolwarm', annot=True, fmt=".2f", cbar = False)
+  heatMapDF = heatMapDF.transpose() #rotate heatmap
+  ax = sns.heatmap(heatMapDF, cmap='coolwarm', annot=False, fmt=".2f", cbar = False)
+  ax.xaxis.tick_top() #moves y-axis to top
   st.pyplot()
 
 
