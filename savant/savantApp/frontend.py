@@ -6,12 +6,12 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-#testing
+
 def SignatureToGeneSymbols():
   # converts signature matrix to a dataframe making it easier to work with
   signautre_matrix_path = 'files/SaVanT_Signatures_Release01.tab.txt'
   delimiter = '\t'
-  matrix_df = pd.read_csv(signautre_matrix_path, delimiter=delimiter, header=None)
+  matrix_df = pd.read_csv(signautre_matrix_path, delimiter=delimiter, header=None)#, nrows=20)
   # drop null values
   
   # takes in dataframe and converts it into a hashmap that maps the signature to its corresponding genes
@@ -53,10 +53,37 @@ def constructHeatMapvalueMatrix():
         print(f"{key}: {value}")
   heatMapDF = pd.DataFrame(signature_to_sample_sum)
   heatMapDF = heatMapDF.transpose() #rotate heatmap
-  ax = sns.heatmap(heatMapDF, cmap='coolwarm', annot=False, fmt=".2f", cbar = False)
+  ax = sns.heatmap(heatMapDF, cmap='coolwarm', annot=False, fmt=".2f", cbar = 1)
   ax.xaxis.tick_top() #moves y-axis to top
   st.pyplot()
 
+def constructHeatMapFromCategory(signature):
+  signature_dict = SignatureToGeneSymbols()
+  gene_to_sample_value_dict = GeneSymbolsToSampleValue()
+  signature_to_sample_sum = {}
+
+  for sig in signature:
+     sampleaverages=[]
+     for sample in range(7):
+        sum =0 
+        length = 0 
+        for gene in signature_dict[sig]:
+           if gene in gene_to_sample_value_dict:
+              sum += gene_to_sample_value_dict[gene][sample]
+           else:
+              sum += 0
+           length += 1
+        sampleaverages.append(float(sum/length))  #for each gene in a signature, calculate average, and do this for every sample
+     signature_to_sample_sum[sig] = sampleaverages   #key is signature, value is array of each sample's avg
+
+  
+  print(signature_to_sample_sum)
+  heatMapDF = pd.DataFrame(signature_to_sample_sum, index=[1,2,3,4,5,6,7]) #index is there to fix a dataframe error
+  heatMapDF = heatMapDF.transpose() #rotate heatmap
+ # color= sns.color_palette("dark:seagreen", "ch:light=.5", as_cmap=True)
+  ax = sns.heatmap(heatMapDF, annot=True, fmt=".2f", cbar = 1, cmap="YlGnBu")
+  ax.xaxis.tick_top() #moves y-axis to top
+  st.pyplot()
 
 def main():
     # Sidebar
@@ -107,7 +134,7 @@ def main():
                 "Human Monocyte Subsets": ['Classical Monocytes: CD14++CD16-', 'Intermediate Monocytes: CD14++CD16+'],
                 "GTEx Tissues": ['GTEx adipose - subcutaenous', 'GTEx adipose - visceral (omentum)']
             }
-            signature = st.selectbox('Choose a signature', options=human_category2_dict[category])
+            signature = st.multiselect('Choose a signature', options=human_category2_dict[category])
         else:
             mouse_category_2_dict = {
                 "Mouse Body Atlas": ['MBA_3T3-L1', 'MBA_adipose_brown'],
@@ -115,15 +142,16 @@ def main():
             }
             signature = st.selectbox('Choose a signature', options=mouse_category_2_dict[category])
 
-
-        
+  
+    
 
     # Main App Contents
     st.title("SaVanT (Signature Visualization Tool)")
     st.text("Visualize molecular signatures in the context of gene expression matrices")
     if st.button("Generate Heatmap"):
         st.text("test")
-        constructHeatMapvalueMatrix()
+        #constructHeatMapvalueMatrix()
+        constructHeatMapFromCategory(signature)
     else:
             st.text("Upload a matrix or choose one from the drop down menu...")
             st.text("Example: ")
