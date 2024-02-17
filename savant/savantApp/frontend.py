@@ -5,6 +5,8 @@ import json
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+import numpy as np
+import scipy.stats as stats
 
 
 def SignatureToGeneSymbols():
@@ -84,6 +86,13 @@ def constructHeatMapFromCategory(signature):
   ax = sns.heatmap(heatMapDF, annot=True, fmt=".2f", cbar = 1, cmap="YlGnBu")
   ax.xaxis.tick_top() #moves y-axis to top
   st.pyplot()
+  performance1 = [89, 89, 88, 78, 79]
+  performance2 = [93, 92, 94, 89, 88]
+  performance3 = [89, 88, 89, 93, 90]
+  performance4 = [81, 78, 81, 92, 82]
+  x= stats.f_oneway(performance1, performance2, performance3, performance4)
+  print(x)
+  
 
 def main():
     # Sidebar
