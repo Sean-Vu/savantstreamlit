@@ -86,6 +86,10 @@ def constructHeatMapFromCategory(signature):
   ax = sns.heatmap(heatMapDF, annot=True, fmt=".2f", cbar = 1, cmap="YlGnBu")
   ax.xaxis.tick_top() #moves y-axis to top
   st.pyplot()
+  #go into samples, look at row of groups
+  #map the groups to signature value array
+  group_dict= sampleToGroup()
+  print(group_dict)
   performance1 = [89, 89, 88, 78, 79]
   performance2 = [93, 92, 94, 89, 88]
   performance3 = [89, 88, 89, 93, 90]
@@ -93,6 +97,13 @@ def constructHeatMapFromCategory(signature):
   x= stats.f_oneway(performance1, performance2, performance3, performance4)
   print(x)
   
+def sampleToGroup(): #returns an array of group numbers, that correspond to sample numbers
+   group_path = 'files/SaVanT_ExampleMatrix.txt'
+   delimeter = '\t'
+   groups = pd.read_csv(group_path, delimiter=delimeter, header=None, skiprows=[0], nrows=1)
+   group_list = list(groups.iloc[0].values)
+   ga = group_list.pop(0)#skips savantgroup column placeholder
+   return group_list
 
 def main():
     # Sidebar
