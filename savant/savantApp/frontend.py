@@ -88,14 +88,23 @@ def constructHeatMapFromCategory(signature):
   st.pyplot()
   #go into samples, look at row of groups
   #map the groups to signature value array
-  group_dict= sampleToGroup()
-  print(group_dict)
+  group_list= sampleToGroup()
+  print(group_list)
   performance1 = [89, 89, 88, 78, 79]
   performance2 = [93, 92, 94, 89, 88]
   performance3 = [89, 88, 89, 93, 90]
   performance4 = [81, 78, 81, 92, 82]
   x= stats.f_oneway(performance1, performance2, performance3, performance4)
   print(x)
+
+def anovaTest(group_list, sigsample_dict):
+   #for every sig in dictionary, assign samples to groups and conduct a test
+   result_dict= {} #dictionary of tuples, one for group, one for sigvalue
+   #maybe create a tuple in original heatmap construct?
+   #for value, group in zip(group_list, sigsample_dict array)
+   #for value in sigsample_dict:
+      
+   return
   
 def sampleToGroup(): #returns an array of group numbers, that correspond to sample numbers
    group_path = 'files/SaVanT_ExampleMatrix.txt'
