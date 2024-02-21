@@ -64,6 +64,7 @@ def constructHeatMapFromCategory(signature):
   gene_to_sample_value_dict = GeneSymbolsToSampleValue()
   signature_to_sample_sum = {}
 
+
   for sig in signature:
      sampleaverages=[]
      for sample in range(7):
@@ -79,7 +80,7 @@ def constructHeatMapFromCategory(signature):
      signature_to_sample_sum[sig] = sampleaverages   #key is signature, value is array of each sample's avg
 
   
-  print(signature_to_sample_sum)
+  print('Signature to sample sum: ', list(signature_to_sample_sum.values())[0])
   heatMapDF = pd.DataFrame(signature_to_sample_sum, index=[1,2,3,4,5,6,7]) #index is there to fix a dataframe error
   heatMapDF = heatMapDF.transpose() #rotate heatmap
  # color= sns.color_palette("dark:seagreen", "ch:light=.5", as_cmap=True)
@@ -89,13 +90,21 @@ def constructHeatMapFromCategory(signature):
   #go into samples, look at row of groups
   #map the groups to signature value array
   group_list= sampleToGroup()
-  print(group_list)
-  performance1 = [89, 89, 88, 78, 79]
-  performance2 = [93, 92, 94, 89, 88]
-  performance3 = [89, 88, 89, 93, 90]
-  performance4 = [81, 78, 81, 92, 82]
-  x= stats.f_oneway(performance1, performance2, performance3, performance4)
-  print(x)
+  sigValues = list(signature_to_sample_sum.values())[0]
+
+  performance1 = []
+  performance2 = []
+
+  
+  for i in range(len(group_list)):
+     if group_list[i] == 1:
+        performance1.append(sigValues[i])
+     else:
+        performance2.append(sigValues[i])
+  print('Performance arrays', performance1, performance2)
+
+  x= stats.f_oneway(performance1, performance2)
+  print('Anova test', x)
 
 def anovaTest(group_list, sigsample_dict):
    #for every sig in dictionary, assign samples to groups and conduct a test
