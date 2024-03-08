@@ -81,21 +81,25 @@ def constructHeatMapFromCategory(signature):
 
   
   print('Signature to sample sum: ', list(signature_to_sample_sum.values())[0])
-  Groups = [1,2,1,2,1,2,2]
   heatMapDF = pd.DataFrame(signature_to_sample_sum, index=[1,2,3,4,5,6,7]) #index is there to fix a dataframe error
-  heatMapDF["Group"]= Groups
   heatMapDF = heatMapDF.transpose() #rotate heatmap
  # color= sns.color_palette("dark:seagreen", "ch:light=.5", as_cmap=True)
   
   
-  ax = sns.heatmap(heatMapDF.drop(["Group"]), annot=True, fmt=".2f", cbar = 1, cmap="YlGnBu")
-  ax.set_xticklabels(Groups)
-
+  ax = sns.heatmap(heatMapDF, annot=True, fmt=".2f", cbar = 1, cmap="YlGnBu")
+  ax2= ax.twiny()
   ax.xaxis.tick_top() #moves y-axis to top
-  st.pyplot()
+  ax2.set_xlim(ax.get_xlim())
+  ax2.set_xlabel("Group Number")
+  ax2.xaxis.set_label_position("bottom")
+  ax2.xaxis.tick_bottom()
   #go into samples, look at row of groups
   #map the groups to signature value array
   group_list= sampleToGroup()
+  
+  ax2.set_xticklabels(group_list)
+  st.pyplot()
+
   sigValues = list(signature_to_sample_sum.values())[0]
 
   performance1 = []
