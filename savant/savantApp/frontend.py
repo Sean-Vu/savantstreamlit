@@ -5,6 +5,7 @@ import json
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+from matplotlib.ticker import FuncFormatter
 import numpy as np
 import scipy.stats as stats
 
@@ -86,34 +87,39 @@ def constructHeatMapFromCategory(signature):
  # color= sns.color_palette("dark:seagreen", "ch:light=.5", as_cmap=True)
   
   
-  ax = sns.heatmap(heatMapDF, annot=True, fmt=".2f", cbar = 1, cmap="YlGnBu")
-  ax2= ax.twiny()
-  ax.xaxis.tick_top() #moves y-axis to top
-  ax2.set_xlim(ax.get_xlim())
+  hm = sns.heatmap(heatMapDF, annot=True, fmt=".2f", cbar = 1, cmap="YlGnBu", linewidths=0.3)
+  ax2= hm.twiny()
+  hm.xaxis.tick_top() #moves y-axis to top
+  ax2.set_xlim(hm.get_xlim())
   ax2.set_xlabel("Group Number")
   ax2.xaxis.set_label_position("bottom")
   ax2.xaxis.tick_bottom()
   #go into samples, look at row of groups
   #map the groups to signature value array
   group_list= sampleToGroup()
+  #ax2.xaxis.set_ticks(group_list)
+  ax2.set_xticklabels(group_list)    
+  for label in ax2.get_xticklabels():   #works assuming there are 2 groups
+    if label.get_text() == '1':
+        label.set_color('red')
+    elif label.get_text() == '2':
+        label.set_color('green')
   
-  ax2.set_xticklabels(group_list)
   st.pyplot()
 
   sigValues = list(signature_to_sample_sum.values())[0]
 
-  performance1 = []
-  performance2 = []
+  group1_avgs = []
+  group2_avgs = []
 
   
   for i in range(len(group_list)):
      if group_list[i] == 1:
-        performance1.append(sigValues[i])
+        group1_avgs.append(sigValues[i])
      else:
-        performance2.append(sigValues[i])
-  print('Performance arrays', performance1, performance2)
+        group2_avgs.append(sigValues[i])
 
-  x= stats.f_oneway(performance1, performance2)
+  x= stats.f_oneway(group1_avgs, group2_avgs)
   print('Anova test', x)
 
 def anovaTest(group_list, sigsample_dict):
