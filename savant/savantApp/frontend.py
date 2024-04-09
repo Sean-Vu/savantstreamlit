@@ -106,7 +106,8 @@ def constructHeatMapFromCategory(signature):
         label.set_color('green')
   
   st.pyplot()
-
+  
+  #fig.canvas.mpl_connect('motion_notify_event')
   sigValues = list(signature_to_sample_sum.values())[0]
 
   group1_avgs = []
@@ -173,7 +174,7 @@ def main():
         }
 
         species = st.selectbox("Choose Species", options=select_dict.keys())
-        category = st.selectbox("Choose category", options=select_dict[species])
+        category = st.multiselect("Choose category", options=select_dict[species])
 
         if species == "Human":
             human_category2_dict = {
@@ -188,13 +189,21 @@ def main():
                 "Human Monocyte Subsets": ['Classical Monocytes: CD14++CD16-', 'Intermediate Monocytes: CD14++CD16+'],
                 "GTEx Tissues": ['GTEx adipose - subcutaenous', 'GTEx adipose - visceral (omentum)']
             }
-            signature = st.multiselect('Choose a signature', options=human_category2_dict[category])
+            signatures= []
+            for sig in category:
+                  subcategories = human_category2_dict[sig]
+                  signatures.extend(subcategories)
+            signatures_selected = st.multiselect('Choose a signature', options=signatures)
         else:
             mouse_category_2_dict = {
                 "Mouse Body Atlas": ['MBA_3T3-L1', 'MBA_adipose_brown'],
                 "ImmGen": ['Stem Cells', 'B Cells']
             }
-            signature = st.selectbox('Choose a signature', options=mouse_category_2_dict[category])
+            signatures= []
+            for sig in category:
+                  subcategories = mouse_category_2_dict[sig]
+                  signatures.extend(subcategories)
+            signatures_selected = st.multiselect('Choose a signature', options=signatures)
 
   
     
@@ -206,7 +215,7 @@ def main():
       constructHeatMapvalueMatrix()
     if st.button("Generate Heatmap"):
         st.text("test")
-        constructHeatMapFromCategory(signature)
+        constructHeatMapFromCategory(signatures_selected)
     else:
             st.text("Upload a matrix or choose one from the drop down menu...")
             st.text("Example: ")
