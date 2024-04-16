@@ -5,12 +5,16 @@ import json
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+from matplotlib.ticker import FuncFormatter
+import numpy as np
+import scipy.stats as stats
+
 
 def SignatureToGeneSymbols():
   # converts signature matrix to a dataframe making it easier to work with
   signautre_matrix_path = 'files/SaVanT_Signatures_Release01.tab.txt'
   delimiter = '\t'
-  matrix_df = pd.read_csv(signautre_matrix_path, delimiter=delimiter, header=None)
+  matrix_df = pd.read_csv(signautre_matrix_path, delimiter=delimiter, header=None)#, nrows=20)
   # drop null values
   
   # takes in dataframe and converts it into a hashmap that maps the signature to its corresponding genes
@@ -51,9 +55,90 @@ def constructHeatMapvalueMatrix():
   for key, value in list(signature_to_sample_sum.items())[:5]:
         print(f"{key}: {value}")
   heatMapDF = pd.DataFrame(signature_to_sample_sum)
-  sns.heatmap(heatMapDF, cmap='coolwarm', annot=True, fmt=".2f")
+  heatMapDF = heatMapDF.transpose() #rotate heatmap
+  ax = sns.heatmap(heatMapDF, cmap='coolwarm', annot=False, fmt=".2f", cbar = 1)
+  ax.xaxis.tick_top() #moves y-axis to top
   st.pyplot()
 
+def constructHeatMapFromCategory(signature):
+  signature_dict = SignatureToGeneSymbols()
+  gene_to_sample_value_dict = GeneSymbolsToSampleValue()
+  signature_to_sample_sum = {}
+
+
+  for sig in signature:
+     sampleaverages=[]
+     for sample in range(7):
+        sum =0 
+        length = 0 
+        for gene in signature_dict[sig]:
+           if gene in gene_to_sample_value_dict:
+              sum += gene_to_sample_value_dict[gene][sample]
+           else:
+              sum += 0
+           length += 1
+        sampleaverages.append(float(sum/length))  #for each gene in a signature, calculate average, and do this for every sample
+     signature_to_sample_sum[sig] = sampleaverages   #key is signature, value is array of each sample's avg
+
+  
+  print('Signature to sample sum: ', list(signature_to_sample_sum.values())[0])
+  heatMapDF = pd.DataFrame(signature_to_sample_sum, index=[1,2,3,4,5,6,7]) #index is there to fix a dataframe error
+  heatMapDF = heatMapDF.transpose() #rotate heatmap
+ # color= sns.color_palette("dark:seagreen", "ch:light=.5", as_cmap=True)
+  
+  
+  hm = sns.heatmap(heatMapDF, annot=True, fmt=".2f", cbar = 1, cmap="YlGnBu", linewidths=0.3)
+  ax2= hm.twiny()
+  hm.xaxis.tick_top() #moves y-axis to top
+  ax2.set_xlim(hm.get_xlim())
+  ax2.set_xlabel("Group Number")
+  ax2.xaxis.set_label_position("bottom")
+  ax2.xaxis.tick_bottom()
+  #go into samples, look at row of groups
+  #map the groups to signature value array
+  group_list= sampleToGroup()
+  #ax2.xaxis.set_ticks(group_list)
+  ax2.set_xticklabels(group_list)    
+  for label in ax2.get_xticklabels():   #works assuming there are 2 groups
+    if label.get_text() == '1':
+        label.set_color('red')
+    elif label.get_text() == '2':
+        label.set_color('green')
+  
+  st.pyplot()
+  
+  #fig.canvas.mpl_connect('motion_notify_event')
+  sigValues = list(signature_to_sample_sum.values())[0]
+
+  group1_avgs = []
+  group2_avgs = []
+
+  
+  for i in range(len(group_list)):
+     if group_list[i] == 1:
+        group1_avgs.append(sigValues[i])
+     else:
+        group2_avgs.append(sigValues[i])
+
+  x= stats.f_oneway(group1_avgs, group2_avgs)
+  print('Anova test', x)
+
+def anovaTest(group_list, sigsample_dict):
+   #for every sig in dictionary, assign samples to groups and conduct a test
+   result_dict= {} #dictionary of tuples, one for group, one for sigvalue
+   #maybe create a tuple in original heatmap construct?
+   #for value, group in zip(group_list, sigsample_dict array)
+   #for value in sigsample_dict:
+      
+   return
+  
+def sampleToGroup(): #returns an array of group numbers, that correspond to sample numbers
+   group_path = 'files/SaVanT_ExampleMatrix.txt'
+   delimeter = '\t'
+   groups = pd.read_csv(group_path, delimiter=delimeter, header=None, skiprows=[0], nrows=1)
+   group_list = list(groups.iloc[0].values)
+   ga = group_list.pop(0)#skips savantgroup column placeholder
+   return group_list
 
 def main():
     # Sidebar
@@ -89,7 +174,7 @@ def main():
         }
 
         species = st.selectbox("Choose Species", options=select_dict.keys())
-        category = st.selectbox("Choose category", options=select_dict[species])
+        category = st.multiselect("Choose category", options=select_dict[species])
 
         if species == "Human":
             human_category2_dict = {
@@ -104,23 +189,33 @@ def main():
                 "Human Monocyte Subsets": ['Classical Monocytes: CD14++CD16-', 'Intermediate Monocytes: CD14++CD16+'],
                 "GTEx Tissues": ['GTEx adipose - subcutaenous', 'GTEx adipose - visceral (omentum)']
             }
-            signature = st.selectbox('Choose a signature', options=human_category2_dict[category])
+            signatures= []
+            for sig in category:
+                  subcategories = human_category2_dict[sig]
+                  signatures.extend(subcategories)
+            signatures_selected = st.multiselect('Choose a signature', options=signatures)
         else:
             mouse_category_2_dict = {
                 "Mouse Body Atlas": ['MBA_3T3-L1', 'MBA_adipose_brown'],
                 "ImmGen": ['Stem Cells', 'B Cells']
             }
-            signature = st.selectbox('Choose a signature', options=mouse_category_2_dict[category])
+            signatures= []
+            for sig in category:
+                  subcategories = mouse_category_2_dict[sig]
+                  signatures.extend(subcategories)
+            signatures_selected = st.multiselect('Choose a signature', options=signatures)
 
-
-        
+  
+    
 
     # Main App Contents
     st.title("SaVanT (Signature Visualization Tool)")
     st.text("Visualize molecular signatures in the context of gene expression matrices")
+    if st.button("Generate Test Heatmap"):
+      constructHeatMapvalueMatrix()
     if st.button("Generate Heatmap"):
         st.text("test")
-        constructHeatMapvalueMatrix()
+        constructHeatMapFromCategory(signatures_selected)
     else:
             st.text("Upload a matrix or choose one from the drop down menu...")
             st.text("Example: ")
