@@ -13,8 +13,7 @@ import scipy.stats as stats
 def SignatureToGeneSymbols(species, category, selected):
   # converts signature matrix to a dataframe making it easier to work with
   if species == "Enrichr":
-    #signature_matrix_path = 'files/Enrichr/' + category + '.txt'
-    signature_matrix_path = 'files/Enrichr/Achilles_fitness_decrease.txt'
+    signature_matrix_path = 'files/Enrichr/' + category[0] + '.txt' #need to revise to work correctly for multiple selections
     with open(signature_matrix_path, 'r') as file:
       lines = file.readlines()
     data = [line.strip().split('\t') for line in lines]
@@ -38,7 +37,7 @@ def GeneSymbolsToSampleValue():
 
 
 def constructHeatMapvalueMatrix():
-  signature_dict = SignatureToGeneSymbols()
+  signature_dict = SignatureToGeneSymbols("SaVanT", "", "")
   gene_to_sample_value_dict = GeneSymbolsToSampleValue()
   signature_to_sample_sum = {}
 
@@ -69,7 +68,6 @@ def constructHeatMapvalueMatrix():
 
 def constructHeatMapFromCategory(species, category, signature):
   signature_dict = SignatureToGeneSymbols(species, category, signature)
-  print("1: ", signature_dict)
   gene_to_sample_value_dict = GeneSymbolsToSampleValue()
   signature_to_sample_sum = {}
 
@@ -113,7 +111,8 @@ def constructHeatMapFromCategory(species, category, signature):
     elif label.get_text() == '2':
         label.set_color('green')
   
-  st.pyplot()
+  st.set_option('deprecation.showPyplotGlobalUse', False) #gets rid of Pyplot warning
+  st.pyplot() 
   
   #fig.canvas.mpl_connect('motion_notify_event')
   sigValues = list(signature_to_sample_sum.values())[0]
@@ -174,19 +173,23 @@ def main():
         
         # Choose Ranked Signature
         st.title('Select / Upload Signatures')
-        st.title('Ranked Signaturess')
+        st.title('Select All Signatures:')
+        if st.checkbox('Select All'):
+           selected_options = [] #have not implemented yet
+           #something like:
+           # species = ['Human', 'Mouse', 'Enrichr']
+        st.title('Or Choose Signatures:')
         
         select_dict = {
-            "Mouse": ["Mouse Body Atlas", "ImmGen"],
-            "Human": ["Skin Samples & Diseases ('SkinDB')", "Swindell ('WRS') Cell Types", "Th Cell Data", "Brain Samples", "Human Pertubation", "Macrophage Activation", "Human Body Atlas", "Primary Cell Atlas (Curated)", "Human Monocyte Subsets", "GTEx Tissues"],
-            "Enrichr": ["Achilles_fitness_decrease"]
+            "Enrichr": ["Achilles_fitness_decrease", "Achilles_fitness_increase"],
+            "SaVanT signatures": ["Mouse Body Atlas", "ImmGen", "Skin Samples & Diseases ('SkinDB')", "Swindell ('WRS') Cell Types", "Th Cell Data", "Brain Samples", "Human Pertubation", "Macrophage Activation", "Human Body Atlas", "Primary Cell Atlas (Curated)", "Human Monocyte Subsets", "GTEx Tissues"]
         }
 
-        species = st.selectbox("Choose Species", options=select_dict.keys())
+        species = st.selectbox("Choose Group", options=select_dict.keys())
         category = st.multiselect("Choose category", options=select_dict[species])
 
-        if species == "Human":
-            human_category2_dict = {
+        if species == "SaVanT signatures":
+           savant_category2_dict = {
                 "Skin Samples & Diseases ('SkinDB')": ['Acne', 'Acute wound (0h after injury)', 'Allergic contact dermatitis'],
                 "Swindell ('WRS') Cell Types": ['WRS_B_cell', 'WRS_CD138+Plasma_Cell', 'WRS_CD34+cell'],
                 "Th Cell Data": ['TH_Th17', 'TH_Th1_Harvard'], 
@@ -196,26 +199,19 @@ def main():
                 "Human Body Atlas": ['HBA_721_B_lymphoblasts', 'HBA_Adipocyte'],
                 "Primary Cell Atlas (Curated)": ['HPCA_Adipocytes', 'HPCA_B_cells'],
                 "Human Monocyte Subsets": ['Classical Monocytes: CD14++CD16-', 'Intermediate Monocytes: CD14++CD16+'],
-                "GTEx Tissues": ['GTEx adipose - subcutaenous', 'GTEx adipose - visceral (omentum)']
-            }
-            signatures= []
-            for sig in category:
-                  subcategories = human_category2_dict[sig]
-                  signatures.extend(subcategories)
-            signatures_selected = st.multiselect('Choose a signature', options=signatures)
-        elif species == "Mouse":
-            mouse_category_2_dict = {
+                "GTEx Tissues": ['GTEx adipose - subcutaenous', 'GTEx adipose - visceral (omentum)'],
                 "Mouse Body Atlas": ['MBA_3T3-L1', 'MBA_adipose_brown'],
                 "ImmGen": ['Stem Cells', 'B Cells']
             }
-            signatures= []
-            for sig in category:
-                  subcategories = mouse_category_2_dict[sig]
+           signatures= []
+           for sig in category:
+                  subcategories = savant_category2_dict[sig]
                   signatures.extend(subcategories)
-            signatures_selected = st.multiselect('Choose a signature', options=signatures)
+           signatures_selected = st.multiselect('Choose a signature', options=signatures)
         else:
             Enrichr_category_2_dict = {
-                "Achilles_fitness_decrease": ['22RV1-prostate', '697-haematopoietic and lymphoid tissue'],
+               "Achilles_fitness_decrease": ['22RV1-prostate', '697-haematopoietic and lymphoid tissue', '786O-kidney', 'A1207-central nervous system'],
+               "Achilles_fitness_increase": ['22RV1-prostate', '697-haematopoietic and lymphoid tissue', '786O-kidney', 'A1207-central nervous system']
             }
             signatures= []
             for sig in category:
