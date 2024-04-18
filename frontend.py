@@ -64,6 +64,7 @@ def constructHeatMapvalueMatrix():
   heatMapDF = heatMapDF.transpose() #rotate heatmap
   ax = sns.heatmap(heatMapDF, cmap='coolwarm', annot=False, fmt=".2f", cbar = 1)
   ax.xaxis.tick_top() #moves y-axis to top
+  st.set_option('deprecation.showPyplotGlobalUse', False) #gets rid of Pyplot warning
   st.pyplot()
 
 def constructHeatMapFromCategory(species, category, signature):
@@ -175,9 +176,7 @@ def main():
         st.title('Select / Upload Signatures')
         st.title('Select All Signatures:')
         if st.checkbox('Select All'):
-           selected_options = [] #have not implemented yet
-           #something like:
-           # species = ['Human', 'Mouse', 'Enrichr']
+           selectAll = True
         st.title('Or Choose Signatures:')
         
         select_dict = {
@@ -208,7 +207,7 @@ def main():
                   subcategories = savant_category2_dict[sig]
                   signatures.extend(subcategories)
            signatures_selected = st.multiselect('Choose a signature', options=signatures)
-        else:
+        elif species == "Enrichr":
             Enrichr_category_2_dict = {
                "Achilles_fitness_decrease": ['22RV1-prostate', '697-haematopoietic and lymphoid tissue', '786O-kidney', 'A1207-central nervous system'],
                "Achilles_fitness_increase": ['22RV1-prostate', '697-haematopoietic and lymphoid tissue', '786O-kidney', 'A1207-central nervous system']
@@ -229,7 +228,11 @@ def main():
       constructHeatMapvalueMatrix()
     if st.button("Generate Heatmap"):
         st.text("test")
-        constructHeatMapFromCategory(species, category, signatures_selected)
+        if selectAll:
+           #constructHeatMapFromCategory('All', '', '')
+           constructHeatMapvalueMatrix() #revise
+        else:
+          constructHeatMapFromCategory(species, category, signatures_selected)
     else:
             st.text("Upload a matrix or choose one from the drop down menu...")
             st.text("Example: ")
