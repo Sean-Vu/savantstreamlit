@@ -172,6 +172,7 @@ def main():
           else:
               st.error('Failed to upload matrix.')
         
+        selectAll = False
         # Choose Ranked Signature
         st.title('Select / Upload Signatures')
         st.title('Select All Signatures:')
