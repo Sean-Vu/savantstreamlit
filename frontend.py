@@ -10,11 +10,18 @@ import numpy as np
 import scipy.stats as stats
 
 
-def SignatureToGeneSymbols():
+def SignatureToGeneSymbols(species, category, selected):
   # converts signature matrix to a dataframe making it easier to work with
-  signautre_matrix_path = 'files/SaVanT_Signatures_Release01.tab.txt'
-  delimiter = '\t'
-  matrix_df = pd.read_csv(signautre_matrix_path, delimiter=delimiter, header=None)#, nrows=20)
+  if species == "Enrichr":
+    #signature_matrix_path = 'files/Enrichr/' + category + '.txt'
+    signature_matrix_path = 'files/Enrichr/Achilles_fitness_decrease.txt'
+    with open(signature_matrix_path, 'r') as file:
+      lines = file.readlines()
+    data = [line.strip().split('\t') for line in lines]
+    matrix_df = pd.DataFrame(data)
+  else: 
+    signature_matrix_path = 'files/SaVanT_Signatures_Release01.tab.txt'
+    matrix_df = pd.read_csv(signature_matrix_path, delimiter='/t', header=None)#, nrows=20)
   # drop null values
   
   # takes in dataframe and converts it into a hashmap that maps the signature to its corresponding genes
@@ -60,8 +67,8 @@ def constructHeatMapvalueMatrix():
   ax.xaxis.tick_top() #moves y-axis to top
   st.pyplot()
 
-def constructHeatMapFromCategory(signature):
-  signature_dict = SignatureToGeneSymbols()
+def constructHeatMapFromCategory(species, category, signature):
+  signature_dict = SignatureToGeneSymbols(species, category, signature)
   gene_to_sample_value_dict = GeneSymbolsToSampleValue()
   signature_to_sample_sum = {}
 
@@ -70,7 +77,7 @@ def constructHeatMapFromCategory(signature):
      sampleaverages=[]
      for sample in range(7):
         sum =0 
-        length = 0 
+        length = 0
         for gene in signature_dict[sig]:
            if gene in gene_to_sample_value_dict:
               sum += gene_to_sample_value_dict[gene][sample]
@@ -170,7 +177,8 @@ def main():
         
         select_dict = {
             "Mouse": ["Mouse Body Atlas", "ImmGen"],
-            "Human": ["Skin Samples & Diseases ('SkinDB')", "Swindell ('WRS') Cell Types", "Th Cell Data", "Brain Samples", "Human Pertubation", "Macrophage Activation", "Human Body Atlas", "Primary Cell Atlas (Curated)", "Human Monocyte Subsets", "GTEx Tissues"]
+            "Human": ["Skin Samples & Diseases ('SkinDB')", "Swindell ('WRS') Cell Types", "Th Cell Data", "Brain Samples", "Human Pertubation", "Macrophage Activation", "Human Body Atlas", "Primary Cell Atlas (Curated)", "Human Monocyte Subsets", "GTEx Tissues"],
+            "Enrichr": ["Achilles_fitness_decrease"]
         }
 
         species = st.selectbox("Choose Species", options=select_dict.keys())
@@ -194,7 +202,7 @@ def main():
                   subcategories = human_category2_dict[sig]
                   signatures.extend(subcategories)
             signatures_selected = st.multiselect('Choose a signature', options=signatures)
-        else:
+        elif species == "Mouse":
             mouse_category_2_dict = {
                 "Mouse Body Atlas": ['MBA_3T3-L1', 'MBA_adipose_brown'],
                 "ImmGen": ['Stem Cells', 'B Cells']
@@ -202,6 +210,15 @@ def main():
             signatures= []
             for sig in category:
                   subcategories = mouse_category_2_dict[sig]
+                  signatures.extend(subcategories)
+            signatures_selected = st.multiselect('Choose a signature', options=signatures)
+        else:
+            Enrichr_category_2_dict = {
+                "Achilles_fitness_decrease": ['22RV1-prostate', '697-haematopoietic and lymphoid tissue'],
+            }
+            signatures= []
+            for sig in category:
+                  subcategories = Enrichr_category_2_dict[sig]
                   signatures.extend(subcategories)
             signatures_selected = st.multiselect('Choose a signature', options=signatures)
 
@@ -215,7 +232,7 @@ def main():
       constructHeatMapvalueMatrix()
     if st.button("Generate Heatmap"):
         st.text("test")
-        constructHeatMapFromCategory(signatures_selected)
+        constructHeatMapFromCategory(species, category, signatures_selected)
     else:
             st.text("Upload a matrix or choose one from the drop down menu...")
             st.text("Example: ")
