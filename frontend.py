@@ -21,7 +21,7 @@ def SignatureToGeneSymbols(species, category, selected):
     matrix_df = pd.DataFrame(data)
   else: 
     signature_matrix_path = 'files/SaVanT_Signatures_Release01.tab.txt'
-    matrix_df = pd.read_csv(signature_matrix_path, delimiter='/t', header=None)#, nrows=20)
+    matrix_df = pd.read_csv(signature_matrix_path, delimiter='\t', header=None)#, nrows=20)
   # drop null values
   
   # takes in dataframe and converts it into a hashmap that maps the signature to its corresponding genes
@@ -69,6 +69,7 @@ def constructHeatMapvalueMatrix():
 
 def constructHeatMapFromCategory(species, category, signature):
   signature_dict = SignatureToGeneSymbols(species, category, signature)
+  print("1: ", signature_dict)
   gene_to_sample_value_dict = GeneSymbolsToSampleValue()
   signature_to_sample_sum = {}
 
