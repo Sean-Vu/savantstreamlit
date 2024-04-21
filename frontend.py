@@ -10,14 +10,20 @@ import numpy as np
 import scipy.stats as stats
 
 
-def SignatureToGeneSymbols(species, category, selected):
+def SignatureToGeneSymbols(group, category, selected):
   # converts signature matrix to a dataframe making it easier to work with
-  if species == "Enrichr":
-    signature_matrix_path = 'files/Enrichr/' + category[0] + '.txt' #need to revise to work correctly for multiple selections
-    with open(signature_matrix_path, 'r') as file:
-      lines = file.readlines()
-    data = [line.strip().split('\t') for line in lines]
-    matrix_df = pd.DataFrame(data)
+  if group == "Enrichr":
+    matrix_df = pd.DataFrame([])
+    #makes one giant dataframe of all selected signature categories
+    #so slow...
+    for i in range(len(category)):
+      signature_matrix_path = 'files/Enrichr/' + category[i] + '.txt'
+      with open(signature_matrix_path, 'r') as file:
+        lines = file.readlines()
+        data = [line.strip().split('\t') for line in lines]
+        matrix_df2 = pd.DataFrame(data)
+      temp = pd.concat([matrix_df, matrix_df2])
+      matrix_df = temp 
   else: 
     signature_matrix_path = 'files/SaVanT_Signatures_Release01.tab.txt'
     matrix_df = pd.read_csv(signature_matrix_path, delimiter='\t', header=None)#, nrows=20)
@@ -67,11 +73,21 @@ def constructHeatMapvalueMatrix():
   st.set_option('deprecation.showPyplotGlobalUse', False) #gets rid of Pyplot warning
   st.pyplot()
 
-def constructHeatMapFromCategory(species, category, signature):
-  signature_dict = SignatureToGeneSymbols(species, category, signature)
+def constructHeatMapFromCategory(group, category, signature):
+  signature_dict = SignatureToGeneSymbols(group, category, signature)
   gene_to_sample_value_dict = GeneSymbolsToSampleValue()
   signature_to_sample_sum = {}
 
+  #if user does not select specific signatures, all the signatures in the selected category will be used
+  if group == 'Enrichr' and signature == []:
+    for i in range(len(category)):
+        signature_matrix_path = 'files/Enrichr/' + category[i] + '.txt'
+        with open(signature_matrix_path, 'r') as file:
+            lines = file.readlines()
+            data = [line.strip().split('\t') for line in lines]
+            matrix_df = pd.DataFrame(data)
+            for value in matrix_df.iloc[:, 0]:
+              signature.append(value)
 
   for sig in signature:
      sampleaverages=[]
@@ -181,14 +197,14 @@ def main():
         st.title('Or Choose Signatures:')
         
         select_dict = {
-            "Enrichr": ["Achilles_fitness_decrease", "Achilles_fitness_increase"],
+            "Enrichr": ['ARCHS4_Cell-lines', 'ARCHS4_IDG_Coexp', 'ARCHS4_Kinases_Coexp', 'ARCHS4_TFs_Coexp', 'ARCHS4_Tissues', 'Achilles_fitness_decrease', 'Achilles_fitness_increase', 'Aging_Perturbations_from_GEO_down', 'Aging_Perturbations_from_GEO_up', 'Allen_Brain_Atlas_10x_scRNA_2021', 'Allen_Brain_Atlas_down', 'Allen_Brain_Atlas_up', 'Azimuth_2023', 'Azimuth_Cell_Types_2021'],
             "SaVanT signatures": ["Mouse Body Atlas", "ImmGen", "Skin Samples & Diseases ('SkinDB')", "Swindell ('WRS') Cell Types", "Th Cell Data", "Brain Samples", "Human Pertubation", "Macrophage Activation", "Human Body Atlas", "Primary Cell Atlas (Curated)", "Human Monocyte Subsets", "GTEx Tissues"]
         }
 
-        species = st.selectbox("Choose Group", options=select_dict.keys())
-        category = st.multiselect("Choose category", options=select_dict[species])
+        group = st.selectbox("Choose Group", options=select_dict.keys())
+        category = st.multiselect("Choose category", options=select_dict[group])
 
-        if species == "SaVanT signatures":
+        if group == "SaVanT signatures":
            savant_category2_dict = {
                 "Skin Samples & Diseases ('SkinDB')": ['Acne', 'Acute wound (0h after injury)', 'Allergic contact dermatitis'],
                 "Swindell ('WRS') Cell Types": ['WRS_B_cell', 'WRS_CD138+Plasma_Cell', 'WRS_CD34+cell'],
@@ -208,10 +224,22 @@ def main():
                   subcategories = savant_category2_dict[sig]
                   signatures.extend(subcategories)
            signatures_selected = st.multiselect('Choose a signature', options=signatures)
-        elif species == "Enrichr":
+        elif group == "Enrichr":
             Enrichr_category_2_dict = {
                "Achilles_fitness_decrease": ['22RV1-prostate', '697-haematopoietic and lymphoid tissue', '786O-kidney', 'A1207-central nervous system'],
-               "Achilles_fitness_increase": ['22RV1-prostate', '697-haematopoietic and lymphoid tissue', '786O-kidney', 'A1207-central nervous system']
+               "Achilles_fitness_increase": ['22RV1-prostate', '697-haematopoietic and lymphoid tissue', '786O-kidney', 'A1207-central nervous system'],
+               'ARCHS4_Cell-lines':[], 
+               'ARCHS4_IDG_Coexp': [], 
+               'ARCHS4_Kinases_Coexp': [], 
+               'ARCHS4_TFs_Coexp': [], 
+               'ARCHS4_Tissues': [], 
+               'Aging_Perturbations_from_GEO_down': [], 
+               'Aging_Perturbations_from_GEO_up': [], 
+               'Allen_Brain_Atlas_10x_scRNA_2021': [], 
+               'Allen_Brain_Atlas_down': [], 
+               'Allen_Brain_Atlas_up': [], 
+               'Azimuth_2023': [], 
+               'Azimuth_Cell_Types_2021': []
             }
             signatures= []
             for sig in category:
@@ -233,7 +261,7 @@ def main():
            #constructHeatMapFromCategory('All', '', '')
            constructHeatMapvalueMatrix() #revise
         else:
-          constructHeatMapFromCategory(species, category, signatures_selected)
+          constructHeatMapFromCategory(group, category, signatures_selected)
     else:
             st.text("Upload a matrix or choose one from the drop down menu...")
             st.text("Example: ")
