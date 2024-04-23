@@ -5,9 +5,12 @@ import json
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-from matplotlib.ticker import FuncFormatter
 import numpy as np
 import scipy.stats as stats
+import plotly.graph_objects as go
+#import plotly.io as pio
+import plotly.express as px
+from plotly.subplots import make_subplots
 
 
 def SignatureToGeneSymbols(group, category, selected):
@@ -77,6 +80,7 @@ def constructHeatMapFromCategory(group, category, signature):
   signature_dict = SignatureToGeneSymbols(group, category, signature)
   gene_to_sample_value_dict = GeneSymbolsToSampleValue()
   signature_to_sample_sum = {}
+  group_list= sampleToGroup()
 
   #if user does not select specific signatures, all the signatures in the selected category will be used
   if group == 'Enrichr' and signature == []:
@@ -109,29 +113,34 @@ def constructHeatMapFromCategory(group, category, signature):
   heatMapDF = heatMapDF.transpose() #rotate heatmap
  # color= sns.color_palette("dark:seagreen", "ch:light=.5", as_cmap=True)
   
+  """fig = go.Figure(data=go.Heatmap(
+        z=heatMapDF.values,  # Pass DataFrame values
+        x=heatMapDF.columns,  # Use DataFrame columns for x-axis
+        y=heatMapDF.index,  # Use DataFrame index for y-axis
+        hoverongaps=False,
+        colorscale="blues" 
+    ))"""
+  #pio.show(fig)
+
+  fig = px.imshow(heatMapDF)
+  fig.update_layout(margin=dict(l=300,r=100,b=100,t=100,pad=4))
+  fig.show()
+
+  # Create subplot for additional row or col of info
+  """fig = make_subplots(
+    rows=2, cols=1,  # 2 rows, 1 column
+    shared_xaxes=True,
+    vertical_spacing=0.1,  # Adjust vertical spacing between subplots
+    row_heights=[0.8, 0.2]
+)
+  additional_row_trace = go.Scatter(x=[1, 2, 3, 4], y=[1, 2, 3, 4], mode='markers', marker=dict(color='red', size=10))
+  heatmap_trace = go.Heatmap(z=heatMapDF)
+  fig.add_trace(heatmap_trace, row=1, col=1)
+  fig.add_trace(additional_row_trace, row=2, col=1)
+  fig.show()
+  """
   
-  hm = sns.heatmap(heatMapDF, annot=True, fmt=".2f", cbar = 1, cmap="YlGnBu", linewidths=0.3)
-  ax2= hm.twiny()
-  hm.xaxis.tick_top() #moves y-axis to top
-  ax2.set_xlim(hm.get_xlim())
-  ax2.set_xlabel("Group Number")
-  ax2.xaxis.set_label_position("bottom")
-  ax2.xaxis.tick_bottom()
-  #go into samples, look at row of groups
-  #map the groups to signature value array
-  group_list= sampleToGroup()
-  #ax2.xaxis.set_ticks(group_list)
-  ax2.set_xticklabels(group_list)    
-  for label in ax2.get_xticklabels():   #works assuming there are 2 groups
-    if label.get_text() == '1':
-        label.set_color('red')
-    elif label.get_text() == '2':
-        label.set_color('green')
   
-  st.set_option('deprecation.showPyplotGlobalUse', False) #gets rid of Pyplot warning
-  st.pyplot() 
-  
-  #fig.canvas.mpl_connect('motion_notify_event')
   sigValues = list(signature_to_sample_sum.values())[0]
 
   group1_avgs = []
