@@ -1,1 +1,11 @@
 SaVanT To Do
+1. Show p-values on heatmap
+2. Aglomerate clustering for heatmap
+3. Z-score heatmap / mean-centered heatmap
+4. Only show signficanty signatures
+5. Only display top x (50?) signatures
+
+Much later
+1. Work on signature display
+2. Fix duplicate signature names 
+3. Update signature database
