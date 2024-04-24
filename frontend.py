@@ -16,24 +16,24 @@ from plotly.subplots import make_subplots
 def SignatureToGeneSymbols(group, category, selected):
   # converts signature matrix to a dataframe making it easier to work with
   if group == "Enrichr":
-    matrix_df = pd.DataFrame([])
-    #makes one giant dataframe of all selected signature categories
-    #so slow...
+    #creates dictionary out of each signature set and then adds this to big dictionary of signatures
+    signature_dict = {}
     for i in range(len(category)):
       signature_matrix_path = 'files/Enrichr/' + category[i] + '.txt'
       with open(signature_matrix_path, 'r') as file:
         lines = file.readlines()
         data = [line.strip().split('\t') for line in lines]
-        matrix_df2 = pd.DataFrame(data)
-      temp = pd.concat([matrix_df, matrix_df2])
-      matrix_df = temp 
+        matrix_df = pd.DataFrame(data)
+      temp_dict = matrix_df.set_index(0).transpose().to_dict('list')
+      signature_dict.update(temp_dict)
+    print("number of sigs: ", len(signature_dict.keys()))
   else: 
     signature_matrix_path = 'files/SaVanT_Signatures_Release01.tab.txt'
     matrix_df = pd.read_csv(signature_matrix_path, delimiter='\t', header=None)#, nrows=20)
   # drop null values
   
   # takes in dataframe and converts it into a hashmap that maps the signature to its corresponding genes
-  signature_dict = matrix_df.set_index(0).transpose().to_dict('list')
+    signature_dict = matrix_df.set_index(0).transpose().to_dict('list')
   return signature_dict
 
 
@@ -122,7 +122,7 @@ def constructHeatMapFromCategory(group, category, signature):
     ))"""
   #pio.show(fig)
 
-  fig = px.imshow(heatMapDF)
+  fig = px.imshow(heatMapDF, color_continuous_scale="Brwnyl")
   fig.update_layout(margin=dict(l=300,r=100,b=100,t=100,pad=4))
   fig.show()
 
@@ -203,7 +203,7 @@ def main():
         st.title('Choose Signatures:')
         
         select_dict = {
-            "Enrichr": ['ARCHS4_Cell-lines', 'ARCHS4_IDG_Coexp', 'ARCHS4_Kinases_Coexp', 'ARCHS4_TFs_Coexp', 'ARCHS4_Tissues', 'Achilles_fitness_decrease', 'Achilles_fitness_increase', 'Aging_Perturbations_from_GEO_down', 'Aging_Perturbations_from_GEO_up', 'Allen_Brain_Atlas_10x_scRNA_2021', 'Allen_Brain_Atlas_down', 'Allen_Brain_Atlas_up', 'Azimuth_2023', 'Azimuth_Cell_Types_2021'],
+            "Enrichr": ['ARCHS4_Cell-lines', 'ARCHS4_IDG_Coexp', 'ARCHS4_Kinases_Coexp', 'ARCHS4_TFs_Coexp', 'ARCHS4_Tissues', 'Achilles_fitness_decrease', 'Achilles_fitness_increase', 'Aging_Perturbations_from_GEO_down', 'Aging_Perturbations_from_GEO_up', 'Allen_Brain_Atlas_10x_scRNA_2021', 'Allen_Brain_Atlas_down', 'Allen_Brain_Atlas_up', 'Azimuth_2023', 'Azimuth_Cell_Types_2021', 'BioCarta_2013', 'BioCarta_2015', 'BioCarta_2016', 'BioPlanet_2019', 'BioPlex_2017', 'CCLE_Proteomics_2020', 'CORUM', 'COVID-19_Related_Gene_Sets', 'COVID-19_Related_Gene_Sets_2021', 'Cancer_Cell_Line_Encyclopedia', 'CellMarker_Augmented_2021', 'ChEA_2013', 'ChEA_2015', 'ChEA_2016', 'ChEA_2022', 'Chromosome_Location', 'Chromosome_Location_hg19', 'ClinVar_2019', 'DSigDB', 'Data_Acquisition_Method_Most_Popular_Genes', 'DepMap_WG_CRISPR_Screens_Broad_CellLines_2019', 'DepMap_WG_CRISPR_Screens_Sanger_CellLines_2019', 'Descartes_Cell_Types_and_Tissue_2021', 'Diabetes_Perturbations_GEO_2022', 'DisGeNET', 'Disease_Perturbations_from_GEO_down', 'Disease_Perturbations_from_GEO_up', 'Disease_Signatures_from_GEO_down_2014', 'Disease_Signatures_from_GEO_up_2014', 'DrugMatrix', 'Drug_Perturbations_from_GEO_2014', 'Drug_Perturbations_from_GEO_down', 'Drug_Perturbations_from_GEO_up'],
             "SaVanT signatures": ["Mouse Body Atlas", "ImmGen", "Skin Samples & Diseases ('SkinDB')", "Swindell ('WRS') Cell Types", "Th Cell Data", "Brain Samples", "Human Pertubation", "Macrophage Activation", "Human Body Atlas", "Primary Cell Atlas (Curated)", "Human Monocyte Subsets", "GTEx Tissues"]
         }
 
@@ -234,18 +234,53 @@ def main():
             Enrichr_category_2_dict = {
                "Achilles_fitness_decrease": ['22RV1-prostate', '697-haematopoietic and lymphoid tissue', '786O-kidney', 'A1207-central nervous system', 'A172-central nervous system', 'A204-soft tissue', 'A2058-skin', 'A549-lung', 'A673-bone', 'ACHN-kidney', 'AGS-stomach', 'AM38-central nervous system', 'AML193-haematopoietic and lymphoid tissue', 'ASPC1-pancreas', 'BT20-breast', 'BT474-breast', 'BXPC3-pancreas', 'C2BBE1-large intestine', 'C32-skin', 'CADOES1-bone', 'CAL120-breast', 'CAL51-breast', 'CALU1-lung', 'CAOV3-ovary', 'CAOV4-ovary', 'CAS1-central nervous system', 'CFPAC1-pancreas', 'CH157MN-central nervous system', 'COLO205-large intestine', 'COLO704-ovary', 'COLO741-skin', 'COLO783-skin', 'CORL23-lung', 'COV362-ovary', 'COV434-ovary', 'COV504-ovary', 'COV644-ovary', 'DBTRG05MG-central nervous system', 'DKMG-central nervous system', 'DLD1-large intestine', 'EFE184-endometrium', 'EFM19-breast', 'EFO21-ovary', 'EFO27-ovary', 'EW8-bone', 'EWS502-bone', 'F36P-haematopoietic and lymphoid tissue', 'GB1-central nervous system', 'GP2D-large intestine', 'HCC1187-breast', 'HCC1395-breast', 'HCC1954-breast', 'HCC2218-breast', 'HCC2814-lung', 'HCC364-lung', 'HCC44-lung', 'HCC70-breast', 'HCC827-lung', 'HCC827GR5-lung', 'HCT116-large intestine', 'HEC1A-endometrium', 'HEYA8-ovary', 'HL60-haematopoietic and lymphoid tissue', 'HLF-liver', 'HNT34-haematopoietic and lymphoid tissue', 'HPAC-pancreas', 'HPAFII-pancreas', 'HS683-central nervous system', 'HS766T-pancreas', 'HS944T-skin'],
                "Achilles_fitness_increase": ['22RV1-prostate', '697-haematopoietic and lymphoid tissue', '786O-kidney', 'A1207-central nervous system'],
-               'ARCHS4_Cell-lines':[], 
-               'ARCHS4_IDG_Coexp': [], 
-               'ARCHS4_Kinases_Coexp': [], 
-               'ARCHS4_TFs_Coexp': [], 
-               'ARCHS4_Tissues': [], 
-               'Aging_Perturbations_from_GEO_down': [], 
-               'Aging_Perturbations_from_GEO_up': [], 
-               'Allen_Brain_Atlas_10x_scRNA_2021': [], 
-               'Allen_Brain_Atlas_down': [], 
-               'Allen_Brain_Atlas_up': [], 
-               'Azimuth_2023': [], 
-               'Azimuth_Cell_Types_2021': []
+                'ARCHS4_Cell-lines': [],
+                'ARCHS4_IDG_Coexp': [],
+                'ARCHS4_Kinases_Coexp': [],
+                'ARCHS4_TFs_Coexp': [],
+                'ARCHS4_Tissues': [],
+                'Achilles_fitness_decrease': [],
+                'Achilles_fitness_increase': [],
+                'Aging_Perturbations_from_GEO_down': [],
+                'Aging_Perturbations_from_GEO_up': [],
+                'Allen_Brain_Atlas_10x_scRNA_2021': [],
+                'Allen_Brain_Atlas_down': [],
+                'Allen_Brain_Atlas_up': [],
+                'Azimuth_2023': [],
+                'Azimuth_Cell_Types_2021': [],
+                'BioCarta_2013': [],
+                'BioCarta_2015': [],
+                'BioCarta_2016': [],
+                'BioPlanet_2019': [],
+                'BioPlex_2017': [],
+                'CCLE_Proteomics_2020': [],
+                'CORUM': [],
+                'COVID-19_Related_Gene_Sets': [],
+                'COVID-19_Related_Gene_Sets_2021': [],
+                'Cancer_Cell_Line_Encyclopedia': [],
+                'CellMarker_Augmented_2021': [],
+                'ChEA_2013': [],
+                'ChEA_2015': [],
+                'ChEA_2016': [],
+                'ChEA_2022': [],
+                'Chromosome_Location': [],
+                'Chromosome_Location_hg19': [],
+                'ClinVar_2019': [],
+                'DSigDB': [],
+                'Data_Acquisition_Method_Most_Popular_Genes': [],
+                'DepMap_WG_CRISPR_Screens_Broad_CellLines_2019': [],
+                'DepMap_WG_CRISPR_Screens_Sanger_CellLines_2019': [],
+                'Descartes_Cell_Types_and_Tissue_2021': [],
+                'Diabetes_Perturbations_GEO_2022': [],
+                'DisGeNET': [],
+                'Disease_Perturbations_from_GEO_down': [],
+                'Disease_Perturbations_from_GEO_up': [],
+                'Disease_Signatures_from_GEO_down_2014': [],
+                'Disease_Signatures_from_GEO_up_2014': [],
+                'DrugMatrix': [],
+                'Drug_Perturbations_from_GEO_2014': [],
+                'Drug_Perturbations_from_GEO_down': [],
+                'Drug_Perturbations_from_GEO_up': [],
             }
             signatures= []
             for sig in category:
