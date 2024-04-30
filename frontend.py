@@ -44,6 +44,18 @@ def GeneSymbolsToSampleValue():
   gene_to_sample_value_dict = gene_df.set_index(0).transpose().to_dict('list')
   return gene_to_sample_value_dict
 
+def convertToZscore(sig_sample_df):
+    #Calculate mean and standard deviation of sig_sample matrix
+    avg = np.mean(sig_sample_df.values)
+    sd = np.std(sig_sample_df.values)
+
+    #transform matrix to z-scores 
+    for i, row in enumerate(sig_sample_df.values):
+        for j, value in enumerate(row):
+          z = (value - avg) / sd
+          sig_sample_df.iloc[i, j] = z
+
+    return sig_sample_df
 
 def constructHeatMapvalueMatrix():
   signature_dict = SignatureToGeneSymbols("SaVanT", "", "")
@@ -51,7 +63,6 @@ def constructHeatMapvalueMatrix():
   signature_to_sample_sum = {}
 
   numberOfSamples = len(next(iter(gene_to_sample_value_dict.values())))
-  
 
   for signature in signature_dict:
     runningSumPerSample = []
@@ -79,7 +90,7 @@ def constructHeatMapvalueMatrix():
 
 
 
-def constructHeatMapFromCategory(group, category, signature):
+def constructHeatMapFromCategory(group, category, signature, zscores):
   signature_dict = SignatureToGeneSymbols(group, category, signature)
   gene_to_sample_value_dict = GeneSymbolsToSampleValue()
   signature_to_sample_sum = {}
@@ -118,6 +129,9 @@ def constructHeatMapFromCategory(group, category, signature):
   pVals=anovaTest(group_list, signature_to_sample_sum)
   print(pVals)
  
+  #if user selects to convert to zscore
+  if zscores:
+    convertToZscore(heatMapDF)
 
   fig = px.imshow(heatMapDF, color_continuous_scale="Brwnyl")
   fig.update_layout(margin=dict(l=300,r=100,b=100,t=100,pad=4))
@@ -138,9 +152,6 @@ def constructHeatMapFromCategory(group, category, signature):
   fig.add_trace(additional_row_trace, row=2, col=1)
   fig.show()
   """
-  
-  
-
 
 def anovaTest(group_list, sigsample_dict):
    group1_avgs = []
@@ -280,6 +291,11 @@ def main():
         st.title('Or Select All Signatures:')
         if st.checkbox('Select All'):
            selectAll = True
+        st.title('Optional Transformations')
+        zscores = False
+        if st.checkbox('Convert to z-scores'):
+           zscores = True
+           
   
     
 
@@ -294,7 +310,7 @@ def main():
            #constructHeatMapFromCategory('All', '', '')
            constructHeatMapvalueMatrix() #revise
         else:
-          constructHeatMapFromCategory(group, category, signatures_selected)
+          constructHeatMapFromCategory(group, category, signatures_selected, zscores)
     else:
             st.text("Upload a matrix or choose one from the drop down menu...")
             st.text("Example: ")
