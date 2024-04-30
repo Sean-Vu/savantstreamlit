@@ -124,6 +124,7 @@ def constructHeatMapFromCategory(group, category, signature):
 
   fig = px.imshow(heatMapDF, color_continuous_scale="Brwnyl")
   fig.update_layout(margin=dict(l=300,r=100,b=100,t=100,pad=4))
+  fig.update_traces(hovertemplate='Signature: %{y}<br>Sample: %{x}<br>Avg Exp: %{z}<extra></extra>')
   fig.show()
 
   # Create subplot for additional row or col of info
