@@ -103,28 +103,26 @@ def constructHeatMapFromCategory(group, category, signature):
               sum += gene_to_sample_value_dict[gene][sample]
            else:
               sum += 0
+              length -=1  #do not count into average
            length += 1
         sampleaverages.append(float(sum/length))  #for each gene in a signature, calculate average, and do this for every sample
      signature_to_sample_sum[sig] = sampleaverages   #key is signature, value is array of each sample's avg
 
   
   print('Signature to sample sum: ', list(signature_to_sample_sum.values())[0])
+  print('Signature to sample sum: ', list(signature_to_sample_sum.values())[1])
   heatMapDF = pd.DataFrame(signature_to_sample_sum, index=[1,2,3,4,5,6,7]) #index is there to fix a dataframe error
   heatMapDF = heatMapDF.transpose() #rotate heatmap
  # color= sns.color_palette("dark:seagreen", "ch:light=.5", as_cmap=True)
-  
-  """fig = go.Figure(data=go.Heatmap(
-        z=heatMapDF.values,  # Pass DataFrame values
-        x=heatMapDF.columns,  # Use DataFrame columns for x-axis
-        y=heatMapDF.index,  # Use DataFrame index for y-axis
-        hoverongaps=False,
-        colorscale="blues" 
-    ))"""
-  #pio.show(fig)
+
+  pVals=anovaTest(group_list, signature_to_sample_sum)
+  print(pVals)
+ 
 
   fig = px.imshow(heatMapDF, color_continuous_scale="Brwnyl")
   fig.update_layout(margin=dict(l=300,r=100,b=100,t=100,pad=4))
-  fig.update_traces(hovertemplate='Signature: %{y}<br>Sample: %{x}<br>Avg Exp: %{z}<extra></extra>')
+  fig.update_traces(text=pVals)
+  fig.update_traces(hovertemplate='Signature: %{y}<br>Sample: %{x}<br>Avg Exp: %{z}<br>P Value: %{text}<extra></extra>')
   fig.show()
 
   # Create subplot for additional row or col of info
@@ -142,29 +140,22 @@ def constructHeatMapFromCategory(group, category, signature):
   """
   
   
-  sigValues = list(signature_to_sample_sum.values())[0]
 
-  group1_avgs = []
-  group2_avgs = []
-
-  
-  for i in range(len(group_list)):
-     if group_list[i] == 1:
-        group1_avgs.append(sigValues[i])
-     else:
-        group2_avgs.append(sigValues[i])
-
-  x= stats.f_oneway(group1_avgs, group2_avgs)
-  print('Anova test', x)
 
 def anovaTest(group_list, sigsample_dict):
-   #for every sig in dictionary, assign samples to groups and conduct a test
-   result_dict= {} #dictionary of tuples, one for group, one for sigvalue
-   #maybe create a tuple in original heatmap construct?
-   #for value, group in zip(group_list, sigsample_dict array)
-   #for value in sigsample_dict:
-      
-   return
+   group1_avgs = []
+   group2_avgs = []
+   pVals=[]
+   for i in sigsample_dict:
+    sigValues = sigsample_dict[i]
+    for i in range(len(group_list)):
+      if group_list[i] == 1:
+        group1_avgs.append(sigValues[i])
+      else:
+        group2_avgs.append(sigValues[i])
+    p= [stats.f_oneway(group1_avgs, group2_avgs).pvalue]
+    pVals.extend([p])
+   return pVals
   
 def sampleToGroup(): #returns an array of group numbers, that correspond to sample numbers
    group_path = 'files/SaVanT_ExampleMatrix.txt'
