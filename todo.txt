@@ -8,6 +8,7 @@ SaVanT To Do
 7. Add on the ability to upload gene expression matrices
 8. Exception handling (what to do if wrong doc formatting or don't upload matrix)
 9. Gene Expression matrix format instructions
+10. Currently importing all signatures to a dict, but maybe see if we can only import the ones needed
 
 Much later
 1. Work on signature display

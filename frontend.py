@@ -76,6 +76,9 @@ def constructHeatMapvalueMatrix():
   st.set_option('deprecation.showPyplotGlobalUse', False) #gets rid of Pyplot warning
   st.pyplot()
 
+
+
+
 def constructHeatMapFromCategory(group, category, signature):
   signature_dict = SignatureToGeneSymbols(group, category, signature)
   gene_to_sample_value_dict = GeneSymbolsToSampleValue()
@@ -101,16 +104,13 @@ def constructHeatMapFromCategory(group, category, signature):
         for gene in signature_dict[sig]:
            if gene in gene_to_sample_value_dict:
               sum += gene_to_sample_value_dict[gene][sample]
-           else:
-              sum += 0
-              length -=1  #do not count into average
-           length += 1
+              length+=1
         sampleaverages.append(float(sum/length))  #for each gene in a signature, calculate average, and do this for every sample
      signature_to_sample_sum[sig] = sampleaverages   #key is signature, value is array of each sample's avg
 
   
-  print('Signature to sample sum: ', list(signature_to_sample_sum.values())[0])
-  print('Signature to sample sum: ', list(signature_to_sample_sum.values())[1])
+  #print('Signature to sample sum: ', list(signature_to_sample_sum.values())[0])
+  #print('Signature to sample sum: ', list(signature_to_sample_sum.values())[1])
   heatMapDF = pd.DataFrame(signature_to_sample_sum, index=[1,2,3,4,5,6,7]) #index is there to fix a dataframe error
   heatMapDF = heatMapDF.transpose() #rotate heatmap
  # color= sns.color_palette("dark:seagreen", "ch:light=.5", as_cmap=True)
