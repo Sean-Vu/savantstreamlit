@@ -158,7 +158,8 @@ def anovaTest(group_list, sigsample_dict):
       else:
         group2_avgs.append(sigValues[i])
     p= [stats.f_oneway(group1_avgs, group2_avgs).pvalue]
-    pVals.extend([p])
+    P= stats.false_discovery_control(p, method='bh')
+    pVals.extend([P])
    return pVals
 
 def sampleToGroup(): #returns an array of group numbers, that correspond to sample numbers
