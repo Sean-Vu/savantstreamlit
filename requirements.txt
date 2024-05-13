@@ -1,5 +1,6 @@
 Django
 djangorestframework
+environ
 matplotlib
 pandas
 requests
