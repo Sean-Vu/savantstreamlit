@@ -9,7 +9,7 @@ import plotly.graph_objects as go
 
 def constructHeatMapvalueMatrix():
   signature_dict = SignatureToGeneSymbols("SaVanT", "", "")
-  gene_to_sample_value_dict = GeneSymbolsToSampleValue()
+  gene_to_sample_value_dict = GeneSymbolsToSampleValue([])
   signature_to_sample_sum = {}
 
   numberOfSamples = len(next(iter(gene_to_sample_value_dict.values())))
@@ -37,18 +37,18 @@ def constructHeatMapvalueMatrix():
   st.set_option('deprecation.showPyplotGlobalUse', False) #gets rid of Pyplot warning
   st.pyplot()
 
-
 def SignatureToGeneSymbols(group, category, selected):
-  # converts signature matrix to a dataframe making it easier to work with
   if group == "Enrichr":
-    #creates dictionary out of each signature set and then adds this to big dictionary of signatures
     signature_dict = {}
+    # converts signature matrix to a dataframe making it easier to work with
     for i in range(len(category)):
       signature_matrix_path = 'files/Enrichr/' + category[i] + '.txt'
       with open(signature_matrix_path, 'r') as file:
         lines = file.readlines()
         data = [line.strip().split('\t') for line in lines]
         matrix_df = pd.DataFrame(data)
+
+      #creates dictionary out of each signature set and then adds this to big dictionary of signatures
       temp_dict = matrix_df.set_index(0).transpose().to_dict('list')
       signature_dict.update(temp_dict)
     print("number of sigs: ", len(signature_dict.keys()))
@@ -61,11 +61,22 @@ def SignatureToGeneSymbols(group, category, selected):
     signature_dict = matrix_df.set_index(0).transpose().to_dict('list')
   return signature_dict
 
+def LogTransformMatrix(user_matrix_df):
+   geneNames = user_matrix_df.iloc[:, 0]
+   temp = user_matrix_df.iloc[:, 1:]
+   log_temp = np.log(temp)
+   log_matrix = pd.concat([geneNames, log_temp], axis=1)
+   return log_matrix
 
-def GeneSymbolsToSampleValue():
+def GeneSymbolsToSampleValue(options):
   gene_matrix_path = 'files/SaVanT_ExampleMatrix.txt'
   delimeter = '\t'
   gene_df = pd.read_csv(gene_matrix_path, delimiter=delimeter, header=None, skiprows=[0,1])
+
+  #if user selects to log-transform data
+  if "logtransform" in options:
+    gene_df = LogTransformMatrix(gene_df)
+  
   gene_to_sample_value_dict = gene_df.set_index(0).transpose().to_dict('list')
   return gene_to_sample_value_dict
 
@@ -83,9 +94,9 @@ def convertToZscore(sig_sample_df):
     return sig_sample_df
 
 
-def constructHeatMapFromCategory(group, category, signature, zscores):
+def constructHeatMapFromCategory(group, category, signature, options):
   signature_dict = SignatureToGeneSymbols(group, category, signature)
-  gene_to_sample_value_dict = GeneSymbolsToSampleValue()
+  gene_to_sample_value_dict = GeneSymbolsToSampleValue(options)
   signature_to_sample_sum = {}
   group_list= sampleToGroup()
 
@@ -123,7 +134,7 @@ def constructHeatMapFromCategory(group, category, signature, zscores):
   print(pVals)
  
   #if user selects to convert to zscore
-  if zscores:
+  if "zscores" in options:
     convertToZscore(heatMapDF)
 
   fig = px.imshow(heatMapDF, color_continuous_scale="Brwnyl")

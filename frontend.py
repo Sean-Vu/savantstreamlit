@@ -122,9 +122,12 @@ def main():
         if st.checkbox('Select All'):
            selectAll = True
         st.title('Optional Transformations')
-        zscores = False
+        options = []
+        if st.checkbox('Log-transform matrix'):
+            options.append("logtransform")
         if st.checkbox('Convert to z-scores'):
-           zscores = True
+           options.append("zscores")
+
            
   
     
@@ -140,7 +143,7 @@ def main():
            #constructHeatMapFromCategory('All', '', '')
            backend.constructHeatMapvalueMatrix() #revise
         else:
-          backend.constructHeatMapFromCategory(group, category, signatures_selected, zscores)
+          backend.constructHeatMapFromCategory(group, category, signatures_selected, options)
     else:
             st.text("Upload a matrix or choose one from the drop down menu...")
             st.text("Example: ")
