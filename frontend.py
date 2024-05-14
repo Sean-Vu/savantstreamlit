@@ -125,6 +125,10 @@ def main():
         options = []
         if st.checkbox('Log-transform matrix'):
             options.append("logtransform")
+        if st.checkbox('Convert matrix values to ranks'):
+            options.append("ranks")
+        if st.checkbox('Transform values to difference from mean'):
+            options.append("delta")
         if st.checkbox('Convert to z-scores'):
            options.append("zscores")
 

@@ -7,6 +7,49 @@ import scipy.stats as stats
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 
+#optional transformations
+def LogTransformMatrix(user_matrix_df):
+   #log transform values of user-uploaded matrix
+   geneNames = user_matrix_df.iloc[:, 0]
+   temp = user_matrix_df.iloc[:, 1:]
+   log_temp = np.log(temp)
+   log_matrix = pd.concat([geneNames, log_temp], axis=1)
+   return log_matrix
+
+def convertToZscore(sig_sample_df):
+    #calculate average and standard deviation for each signature
+    for i, row in enumerate(sig_sample_df.values):
+        avg = row.mean()
+        sd = row.std()
+    #convert each value in signature-sample matrix to a z-score
+        for j, value in enumerate(row):
+          z = (value - avg) / sd
+          sig_sample_df.iloc[i, j] = z
+    return sig_sample_df
+
+def DiffFromMean(user_matrix_df):
+   #Transform values to difference from mean (for each gene) 
+   #Note: not sure if this logic is correct
+   print(user_matrix_df)
+   geneNames = user_matrix_df.iloc[:, 0]
+   temp = user_matrix_df.iloc[:, 1:]
+   for i, row in enumerate(temp.values):
+        avg = row.mean()
+        for j, value in enumerate(row):
+          new = (value-avg)
+          temp.iloc[i, j] = new
+   transformed_matrix = pd.concat([geneNames, temp], axis=1)
+   print(transformed_matrix)
+   return transformed_matrix
+
+def ConvertToRanks(user_matrix_df):
+   #Convert matrix values to ranks
+   geneNames = user_matrix_df.iloc[:, 0]
+   temp = user_matrix_df.iloc[:, 1:]
+   ranked_df = temp.rank(axis=1)
+   ranked_matrix = pd.concat([geneNames, ranked_df], axis=1)
+   return ranked_matrix
+
 def constructHeatMapvalueMatrix():
   signature_dict = SignatureToGeneSymbols("SaVanT", "", "")
   gene_to_sample_value_dict = GeneSymbolsToSampleValue([])
@@ -61,13 +104,6 @@ def SignatureToGeneSymbols(group, category, selected):
     signature_dict = matrix_df.set_index(0).transpose().to_dict('list')
   return signature_dict
 
-def LogTransformMatrix(user_matrix_df):
-   geneNames = user_matrix_df.iloc[:, 0]
-   temp = user_matrix_df.iloc[:, 1:]
-   log_temp = np.log(temp)
-   log_matrix = pd.concat([geneNames, log_temp], axis=1)
-   return log_matrix
-
 def GeneSymbolsToSampleValue(options):
   gene_matrix_path = 'files/SaVanT_ExampleMatrix.txt'
   delimeter = '\t'
@@ -76,23 +112,17 @@ def GeneSymbolsToSampleValue(options):
   #if user selects to log-transform data
   if "logtransform" in options:
     gene_df = LogTransformMatrix(gene_df)
+
+  #if user selects to convert matrix values to ranks
+  if "ranks" in options:
+     gene_df = ConvertToRanks(gene_df)
+
+  #if user selects to transform to difference from mean
+  if "delta" in options:
+     gene_df = DiffFromMean(gene_df)
   
   gene_to_sample_value_dict = gene_df.set_index(0).transpose().to_dict('list')
   return gene_to_sample_value_dict
-
-def convertToZscore(sig_sample_df):
-    #calculate average and standard deviation for each signature
-    for i, row in enumerate(sig_sample_df.values):
-        avg = row.mean()
-        sd = row.std()
-
-    #convert each value in signature-sample matrix to a z-score
-        for j, value in enumerate(row):
-          z = (value - avg) / sd
-          sig_sample_df.iloc[i, j] = z
-    
-    return sig_sample_df
-
 
 def constructHeatMapFromCategory(group, category, signature, options):
   signature_dict = SignatureToGeneSymbols(group, category, signature)
