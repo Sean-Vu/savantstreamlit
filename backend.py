@@ -70,16 +70,16 @@ def GeneSymbolsToSampleValue():
   return gene_to_sample_value_dict
 
 def convertToZscore(sig_sample_df):
-    #Calculate mean and standard deviation of sig_sample matrix
-    avg = np.mean(sig_sample_df.values)
-    sd = np.std(sig_sample_df.values)
-
-    #transform matrix to z-scores 
+    #calculate average and standard deviation for each signature
     for i, row in enumerate(sig_sample_df.values):
+        avg = row.mean()
+        sd = row.std()
+
+    #convert each value in signature-sample matrix to a z-score
         for j, value in enumerate(row):
           z = (value - avg) / sd
           sig_sample_df.iloc[i, j] = z
-
+    
     return sig_sample_df
 
 
