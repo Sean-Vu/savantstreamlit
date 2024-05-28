@@ -131,6 +131,8 @@ def main():
             options.append("delta")
         if st.checkbox('Convert to z-scores'):
            options.append("zscores")
+        if st.checkbox('Cluster'):
+            options.append("cluster")
 
            
   
