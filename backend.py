@@ -4,6 +4,7 @@ import seaborn as sns
 import numpy as np
 import plotly.express as px
 import scipy.stats as stats
+from statsmodels.stats.multitest import fdrcorrection
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 
@@ -173,24 +174,13 @@ def constructHeatMapFromCategory(group, category, signature, options):
   fig.update_traces(hovertemplate='Signature: %{y}<br>Sample: %{x}<br>Avg Exp: %{z}<br>P Value: %{text}<extra></extra>')
   fig.show()
 
-  # Create subplot for additional row or col of info
-  """fig = make_subplots(
-    rows=2, cols=1,  # 2 rows, 1 column
-    shared_xaxes=True,
-    vertical_spacing=0.1,  # Adjust vertical spacing between subplots
-    row_heights=[0.8, 0.2]
-)
-  additional_row_trace = go.Scatter(x=[1, 2, 3, 4], y=[1, 2, 3, 4], mode='markers', marker=dict(color='red', size=10))
-  heatmap_trace = go.Heatmap(z=heatMapDF)
-  fig.add_trace(heatmap_trace, row=1, col=1)
-  fig.add_trace(additional_row_trace, row=2, col=1)
-  fig.show()
-  """
+
 
 def anovaTest(group_list, sigsample_dict):
    group1_avgs = []
    group2_avgs = []
    pVals=[]
+   corrected_pVals=[]
    for i in sigsample_dict:
     sigValues = sigsample_dict[i]
     for i in range(len(group_list)):
@@ -198,10 +188,13 @@ def anovaTest(group_list, sigsample_dict):
         group1_avgs.append(sigValues[i])
       else:
         group2_avgs.append(sigValues[i])
-    p= [stats.f_oneway(group1_avgs, group2_avgs).pvalue]
-    P= stats.false_discovery_control(p, method='bh')
-    pVals.extend([P])
-   return pVals
+    p= stats.f_oneway(group1_avgs, group2_avgs).pvalue
+    print(p)
+    pVals.append(p)
+   rejectedarr, correctedarr= fdrcorrection(pVals, alpha=0.05)
+   for i in correctedarr:
+      corrected_pVals.append([i])
+   return corrected_pVals
 
 def sampleToGroup(): #returns an array of group numbers, that correspond to sample numbers
    group_path = 'files/SaVanT_ExampleMatrix.txt'
