@@ -174,7 +174,7 @@ def constructHeatMapFromCategory(group, category, signature, options):
   if "cluster" in options:
      columns = list(heatMapDF.columns.values)
      rows = list(heatMapDF.index)
-     fig2 = dash_bio.Clustergram(data = heatMapDF, row_labels=rows, column_labels=columns, color_map=[[0, '#FF0000'],[1.0, '#00FF00']], height = 1500, width = 850, standardize='none')
+     fig2 = dash_bio.Clustergram(data = heatMapDF, row_labels=rows, column_labels=columns, color_map=[[0, '#0000FF'],[0.5, '#FFFFFF'],[1.0, '#FF0000']], height = 1500, width = 850, center_values = False)
      fig2.update_traces(text=pVals)
      fig2.update_traces(hovertemplate='Signature: %{y}<br>Sample: %{x}<br>Avg Exp: %{z}<br>P Value: %{text}<extra></extra>')
      fig2.show()
