@@ -165,21 +165,23 @@ def constructHeatMapFromCategory(group, category, signature, options):
   pVals=anovaTest(group_list, signature_to_sample_sum)
   print(pVals)
  
+  heatMapColors = ['rgb(237, 229, 207)', 'rgb(224, 194, 162)', 'rgb(211, 156, 131)', 'rgb(193, 118, 111)', 'rgb(166, 84, 97)', 'rgb(129, 55, 83)', 'rgb(84, 31, 63)'] #same as px.Brwnyl
+
   #if user selects to convert to zscore
   if "zscores" in options:
     convertToZscore(heatMapDF)
-
-  print(px.colors.sequential.Brwnyl)
+    heatMapColors = [[0, '#0000FF'],[0.5, '#FFFFFF'],[1.0, '#FF0000']]
 
   if "cluster" in options:
+     num_sigs = len(signature_dict)
      columns = list(heatMapDF.columns.values)
      rows = list(heatMapDF.index)
-     fig2 = dash_bio.Clustergram(data = heatMapDF, row_labels=rows, column_labels=columns, color_map=[[0, '#0000FF'],[0.5, '#FFFFFF'],[1.0, '#FF0000']], height = 1500, width = 850, center_values = False)
+     fig2 = dash_bio.Clustergram(data = heatMapDF, row_labels=rows, column_labels=columns, color_map= heatMapColors, height = num_sigs*12, width = 850, center_values = False)
      fig2.update_traces(text=pVals)
      fig2.update_traces(hovertemplate='Signature: %{y}<br>Sample: %{x}<br>Avg Exp: %{z}<br>P Value: %{text}<extra></extra>')
      fig2.show()
   else:
-     fig = px.imshow(heatMapDF, color_continuous_scale="Brwnyl")
+     fig = px.imshow(heatMapDF, color_continuous_scale= heatMapColors)
      fig.update_layout(margin=dict(l=300,r=100,b=100,t=100,pad=4))
      fig.update_traces(text=pVals)
      fig.update_traces(hovertemplate='Signature: %{y}<br>Sample: %{x}<br>Avg Exp: %{z}<br>P Value: %{text}<extra></extra>')
