@@ -160,10 +160,9 @@ def constructHeatMapFromCategory(group, category, signature, options):
   #print('Signature to sample sum: ', list(signature_to_sample_sum.values())[1])
   heatMapDF = pd.DataFrame(signature_to_sample_sum, index=[1,2,3,4,5,6,7]) #index is there to fix a dataframe error
   heatMapDF = heatMapDF.transpose() #rotate heatmap
- # color= sns.color_palette("dark:seagreen", "ch:light=.5", as_cmap=True)
 
-  pVals=anovaTest(group_list, signature_to_sample_sum)
-  print(pVals)
+
+  pVals=anovaTest(group_list, signature_to_sample_sum) #PVALS change based on order selected rn
  
   heatMapColors = ['rgb(237, 229, 207)', 'rgb(224, 194, 162)', 'rgb(211, 156, 131)', 'rgb(193, 118, 111)', 'rgb(166, 84, 97)', 'rgb(129, 55, 83)', 'rgb(84, 31, 63)'] #same as px.Brwnyl
 
@@ -171,6 +170,25 @@ def constructHeatMapFromCategory(group, category, signature, options):
   if "zscores" in options:
     convertToZscore(heatMapDF)
     heatMapColors = [[0, '#0000FF'],[0.5, '#FFFFFF'],[1.0, '#FF0000']]
+  
+  if "threshold" in options:
+     #go through the og heatmap, find which labels to remove, update and remove from copy
+     #need to remove pVals
+     count= 0
+     labels_to_remove = []
+     while count < len(pVals):
+        #print(heatMapDF.index)
+        if pVals[count][0] > 0.5:
+           labels_to_remove.append(heatMapDF.index[count])
+           print(labels_to_remove)
+        count+=1
+     print(pVals)
+     DF_updated= heatMapDF.drop(labels=labels_to_remove)
+     fig = px.imshow(DF_updated, color_continuous_scale= heatMapColors)
+     fig.update_layout(margin=dict(l=300,r=100,b=100,t=100,pad=4))
+     fig.update_traces(text=pVals)
+     fig.update_traces(hovertemplate='Signature: %{y}<br>Sample: %{x}<br>Avg Exp: %{z}<br>P Value: %{text}<extra></extra>')
+     fig.show()
 
   if "cluster" in options:
      num_sigs = len(signature_dict)
@@ -180,7 +198,7 @@ def constructHeatMapFromCategory(group, category, signature, options):
      fig2.update_traces(text=pVals)
      fig2.update_traces(hovertemplate='Signature: %{y}<br>Sample: %{x}<br>Avg Exp: %{z}<br>P Value: %{text}<extra></extra>')
      fig2.show()
-  else:
+  elif "threshold" not in options:
      fig = px.imshow(heatMapDF, color_continuous_scale= heatMapColors)
      fig.update_layout(margin=dict(l=300,r=100,b=100,t=100,pad=4))
      fig.update_traces(text=pVals)
@@ -202,7 +220,6 @@ def anovaTest(group_list, sigsample_dict):
       else:
         group2_avgs.append(sigValues[i])
     p= stats.f_oneway(group1_avgs, group2_avgs).pvalue
-    print(p)
     pVals.append(p)
    rejectedarr, correctedarr= fdrcorrection(pVals, alpha=0.05)
    for i in correctedarr:

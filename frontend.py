@@ -133,6 +133,8 @@ def main():
            options.append("zscores")
         if st.checkbox('Cluster'):
             options.append("cluster")
+        if st.checkbox('Threshold Display'):
+            options.append('threshold')
 
            
   
