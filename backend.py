@@ -173,16 +173,18 @@ def constructHeatMapFromCategory(group, category, signature, options):
   
   if "threshold" in options:
      #go through the og heatmap, find which labels to remove, update and remove from copy
-     #need to remove pVals
      count= 0
      labels_to_remove = []
+     pvalIndices = []
      while count < len(pVals):
-        #print(heatMapDF.index)
-        if pVals[count][0] > 0.5:
+        if pVals[count][0] > 0.3:
            labels_to_remove.append(heatMapDF.index[count])
+           pvalIndices.insert(0, count)  #insert to front so that higher indices are first
            print(labels_to_remove)
         count+=1
      print(pVals)
+     for idx in pvalIndices:
+        pVals.pop(idx)
      DF_updated= heatMapDF.drop(labels=labels_to_remove)
      fig = px.imshow(DF_updated, color_continuous_scale= heatMapColors)
      fig.update_layout(margin=dict(l=300,r=100,b=100,t=100,pad=4))
