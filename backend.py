@@ -126,7 +126,7 @@ def GeneSymbolsToSampleValue(options):
   gene_to_sample_value_dict = gene_df.set_index(0).transpose().to_dict('list')
   return gene_to_sample_value_dict
 
-def constructHeatMapFromCategory(group, category, signature, options):
+def constructHeatMapFromCategory(group, category, signature, options, thresholdValue):
   signature_dict = SignatureToGeneSymbols(group, category, signature)
   gene_to_sample_value_dict = GeneSymbolsToSampleValue(options)
   signature_to_sample_sum = {}
@@ -177,7 +177,7 @@ def constructHeatMapFromCategory(group, category, signature, options):
      labels_to_remove = []
      pvalIndices = []
      while count < len(pVals):
-        if pVals[count][0] > 0.3:
+        if pVals[count][0] > thresholdValue:
            labels_to_remove.append(heatMapDF.index[count])
            pvalIndices.insert(0, count)  #insert to front so that higher indices are first
            print(labels_to_remove)

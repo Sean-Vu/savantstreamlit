@@ -118,6 +118,7 @@ def main():
                   subcategories = Enrichr_category_2_dict[sig]
                   signatures.extend(subcategories)
             signatures_selected = st.multiselect('Choose a signature', options=signatures)
+        thresholdValue= 0.05
         st.title('Or Select All Signatures:')
         if st.checkbox('Select All'):
            selectAll = True
@@ -129,16 +130,15 @@ def main():
             options.append("ranks")
         if st.checkbox('Transform values to difference from mean'):
             options.append("delta")
-        if st.checkbox('Convert to z-scores'):
+        if st.checkbox('Convert to z-scores', value=True):
            options.append("zscores")
-        if st.checkbox('Cluster'):
+        if st.checkbox('Cluster', value=True):
             options.append("cluster")
-        if st.checkbox('Threshold Display'):
+        if st.checkbox('Threshold Display', value=True):
+            thresholdValue = st.slider(label="Threshold P Value", min_value=0.0, max_value=1.0, value = 0.05)
             options.append('threshold')
-
-           
-  
-    
+         
+   
 
     # Main App Contents
     st.title("SaVanT (Signature Visualization Tool)")
@@ -151,7 +151,7 @@ def main():
            #constructHeatMapFromCategory('All', '', '')
            backend.constructHeatMapvalueMatrix() #revise
         else:
-          backend.constructHeatMapFromCategory(group, category, signatures_selected, options)
+          backend.constructHeatMapFromCategory(group, category, signatures_selected, options, thresholdValue)
     else:
             st.text("Upload a matrix or choose one from the drop down menu...")
             st.text("Example: ")
