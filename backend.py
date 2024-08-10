@@ -171,7 +171,7 @@ def constructHeatMapFromCategory(group, category, signature, options, thresholdV
     convertToZscore(heatMapDF)
     heatMapColors = [[0, '#0000FF'],[0.5, '#FFFFFF'],[1.0, '#FF0000']]
   
-  if "threshold" in options:
+  if ("threshold" in options) and ("cluster" not in options):
      #go through the og heatmap, find which labels to remove, update and remove from copy
      count= 0
      labels_to_remove = []
@@ -192,7 +192,7 @@ def constructHeatMapFromCategory(group, category, signature, options, thresholdV
      fig.update_traces(hovertemplate='Signature: %{y}<br>Sample: %{x}<br>Avg Exp: %{z}<br>P Value: %{text}<extra></extra>')
      fig.show()
 
-  if "cluster" in options:
+  elif ("threshold" not in options) and ("cluster" in options):
      num_sigs = len(signature_dict)
      columns = list(heatMapDF.columns.values)
      rows = list(heatMapDF.index)
@@ -200,12 +200,35 @@ def constructHeatMapFromCategory(group, category, signature, options, thresholdV
      fig2.update_traces(text=pVals)
      fig2.update_traces(hovertemplate='Signature: %{y}<br>Sample: %{x}<br>Avg Exp: %{z}<br>P Value: %{text}<extra></extra>')
      fig2.show()
-  elif "threshold" not in options:
+  elif ("threshold" in options) and ("cluster" in options):
+     #adjust colorbar location; clustergram doesnt work with low p values
+     count= 0
+     labels_to_remove = []
+     pvalIndices = []
+     while count < len(pVals):
+        if pVals[count][0] > thresholdValue:
+           labels_to_remove.append(heatMapDF.index[count])
+           pvalIndices.insert(0, count)  #insert to front so that higher indices are first
+           print(labels_to_remove)
+        count+=1
+     print(pVals)
+     for idx in pvalIndices:
+        pVals.pop(idx)
+     DF_updated= heatMapDF.drop(labels=labels_to_remove)
+     num_sigs = len(signature_dict)
+     columns = list(DF_updated.columns.values)
+     rows = list(DF_updated.index)
+     fig2 = dash_bio.Clustergram(data = DF_updated, row_labels=rows, column_labels=columns, color_map= heatMapColors, height = num_sigs*12, width = 850, center_values = False)
+     fig2.update_traces(text=pVals)
+     fig2.update_traces(hovertemplate='Signature: %{y}<br>Sample: %{x}<br>Avg Exp: %{z}<br>P Value: %{text}<extra></extra>')
+     fig2.show()
+  else:
      fig = px.imshow(heatMapDF, color_continuous_scale= heatMapColors)
      fig.update_layout(margin=dict(l=300,r=100,b=100,t=100,pad=4))
      fig.update_traces(text=pVals)
      fig.update_traces(hovertemplate='Signature: %{y}<br>Sample: %{x}<br>Avg Exp: %{z}<br>P Value: %{text}<extra></extra>')
      fig.show()
+
 
 
 
