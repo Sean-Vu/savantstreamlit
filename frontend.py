@@ -135,7 +135,8 @@ def main():
         if st.checkbox('Cluster', value=True):
             options.append("cluster")
         if st.checkbox('Threshold Display', value=True):
-            thresholdValue = st.slider(label="Threshold P Value", min_value=0.0, max_value=1.0, value = 0.05)
+            thresholdValue = st.slider(label="Threshold P Value", min_value=-6.0, max_value=0.0, value = -1.301)
+            thresholdValue = 10**thresholdValue
             options.append('threshold')
          
    
